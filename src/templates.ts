@@ -83,7 +83,7 @@ export async function wordpressWidgetTemplate(element: VueElementorElement) {
           $html = [];
   
           $args = [
-            "props" => [],
+            "settings" => [],
             "widgetId" => $this->get_id()
           ];
           exec(__DIR__ . '/assets/${element.name}.ssr ' . json_encode(json_encode($args)), $html);
