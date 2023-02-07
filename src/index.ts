@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises'
 import { loadConfig } from 'c12'
 import fs from 'fs-extra'
+import slugify from 'slugify'
 import { buildElement } from './builder'
 import { VueElementorConfigSchema } from './schema'
 import { wordpressPluginTemplate, wordpressWidgetTemplate } from './templates'
@@ -10,20 +11,22 @@ export const main = async () => {
     name: 'vue-elementor',
   }).then(({ config }) => config))
 
+  const pluginNameSlug = slugify(config.pluginName, { lower: true, strict: true })
+
   await fs.rm('elementor-dist', { recursive: true, force: true })
   await fs.ensureDir('elementor-dist')
 
-  await fs.rm('wordpress-plugin', { recursive: true, force: true })
-  await fs.ensureDir('wordpress-plugin/assets')
+  await fs.rm(pluginNameSlug, { recursive: true, force: true })
+  await fs.ensureDir(`${pluginNameSlug}/assets`)
 
-  await writeFile('wordpress-plugin/wordpress-plugin.php', await wordpressPluginTemplate(config.elements))
+  await writeFile(`${pluginNameSlug}/${pluginNameSlug}.php`, await wordpressPluginTemplate(config.elements, config.pluginName))
 
   for (const element of config.elements) {
     await writeFile(
-    `wordpress-plugin/${element.name}.widget.php`,
+    `${pluginNameSlug}/${element.name}.widget.php`,
     await wordpressWidgetTemplate(element),
     )
-    await buildElement(element, config.wordpressArchitecture)
+    await buildElement(element, config.wordpressArchitecture, pluginNameSlug)
   }
 
   await fs.rm('dist', { recursive: true, force: true })

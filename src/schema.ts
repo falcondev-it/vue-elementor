@@ -10,6 +10,7 @@ export type VueElementorElement = z.infer<typeof VueElementorElementSchema>
 export const VueElementorConfigSchema = z.object({
   elements: z.array(VueElementorElementSchema),
   wordpressArchitecture: z.string(),
+  pluginName: z.string(),
 })
 
 export type VueElementorConfig = z.infer<typeof VueElementorConfigSchema>

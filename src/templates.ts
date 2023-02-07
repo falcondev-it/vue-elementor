@@ -96,12 +96,12 @@ export async function wordpressWidgetTemplate(element: VueElementorElement) {
 `
 }
 
-export async function wordpressPluginTemplate(elements: VueElementorElement[]) {
+export async function wordpressPluginTemplate(elements: VueElementorElement[], pluginName: string) {
   return `<?php
 
   /**
-   * Plugin Name: Vue Custom Widgets
-   * Description: Vue Custom Widgets
+   * Plugin Name: ${pluginName}
+   * Description: ${pluginName}
    * Plugin URI:  https://elementor.com/
    * Version:     1.0.0
    * Author:      Elementor Developer

@@ -5,7 +5,7 @@ import { exec as pkg } from 'pkg'
 import type { VueElementorElement } from './schema'
 import { elementTemplate, ssrScriptTemplate } from './templates'
 
-export async function buildElement(element: VueElementorElement, arch: string) {
+export async function buildElement(element: VueElementorElement, arch: string, pluginName: string) {
   await fs.ensureDir(`elementor-dist/${element.name}`)
 
   await writeFile(`elementor-dist/${element.name}/element.js`, await elementTemplate(element))
@@ -15,7 +15,7 @@ export async function buildElement(element: VueElementorElement, arch: string) {
   await viteBuild(`elementor-dist/${element.name}/element.js`, `${element.name}.el.js`)
   await fs.copy(
     `dist/${element.name}.el.js`,
-    `wordpress-plugin/assets/${element.name}.el.js`,
+    `${pluginName}/assets/${element.name}.el.js`,
   )
 
   await viteBuild(`elementor-dist/${element.name}/ssr.js`, `${element.name}.ssr.js`)
@@ -24,7 +24,7 @@ export async function buildElement(element: VueElementorElement, arch: string) {
     '--target',
     arch,
     '--output',
-    `wordpress-plugin/assets/${element.name}.ssr`,
+    `${pluginName}/assets/${element.name}.ssr`,
   ])
 }
 
