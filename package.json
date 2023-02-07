@@ -18,7 +18,9 @@
   "source": "src/index.ts",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "bin": "bin/cli.mjs",
+  "bin": {
+    "vue-elementor": "bin/cli.mjs"
+  },
   "scripts": {
     "lint": "eslint --fix .",
     "type-check": "tsc --noEmit",
