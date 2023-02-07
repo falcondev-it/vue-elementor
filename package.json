@@ -1,5 +1,5 @@
 {
-  "name": "@louishaftmann/vue-elementor",
+  "name": "@falcondev-it/vue-elementor",
   "version": "0.0.3",
   "description": "Export Vue components as Elementor widgets using vite",
   "author": "Louis Haftmann",
