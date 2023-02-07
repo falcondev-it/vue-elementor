@@ -1,34 +1,41 @@
-import path from 'path'
-import slugify from 'slugify'
-import fs, { ensureDir } from 'fs-extra'
-import type { Config } from './types'
-import { pluginMainTemplate, widgetTemplate } from './templates/elementor'
-import { buildWidgetClientScript } from './parcel'
+import fs from 'fs-extra'
+import { build } from 'vite'
+import { exec as pkg } from 'pkg'
+import type { VueElementorElement } from './schema'
+import { elementTemplate, ssrScriptTemplate } from './templates'
 
-export const buildElementorWidget = async (pluginDir: string, pluginName: string, options: Config['widgets'][0]) => {
-  const name = slugify(options.name, { lower: true })
-  const widgetDir = path.join(pluginDir, name)
+export async function buildElement(element: VueElementorElement, arch: string) {
+  await fs.ensureDir(`elementor-dist/${element.name}`)
 
-  await ensureDir(widgetDir)
+  await fs.writeFile(`elementor-dist/${element.name}/element.js`, await elementTemplate(element))
 
-  await fs.writeFile(path.join(widgetDir, `${name}.php`), widgetTemplate({
-    name,
-    pluginName,
-    controls: options.controls,
-  }))
-  await fs.writeFile(path.join(widgetDir, 'client.js'), await buildWidgetClientScript(options.componentPath))
+  await fs.writeFile(`elementor-dist/${element.name}/ssr.js`, await ssrScriptTemplate(element))
+
+  await viteBuild(`elementor-dist/${element.name}/element.js`, `${element.name}.el.js`)
+  await fs.copy(
+    `dist/${element.name}.el.js`,
+    `wordpress-plugin/assets/${element.name}.el.js`,
+  )
+
+  await viteBuild(`elementor-dist/${element.name}/ssr.js`, `${element.name}.ssr.js`)
+  await pkg([
+    `dist/${element.name}.ssr.js`,
+    '--target',
+    arch,
+    '--output',
+    `wordpress-plugin/assets/${element.name}.ssr`,
+  ])
 }
 
-export const buildElementorPlugin = async (options: Config) => {
-  const name = slugify(options.pluginName, { lower: true })
-  const pluginDir = path.join(process.cwd(), 'dist', name)
-
-  await fs.ensureDir(pluginDir)
-
-  await Promise.all(options.widgets.map(widget => buildElementorWidget(pluginDir, name, widget)))
-
-  await fs.writeFile(path.join(pluginDir, 'index.php'), pluginMainTemplate({
-    pluginName: name,
-    widgets: options.widgets,
-  }))
+export async function viteBuild(entry: string, fileName: string) {
+  return build({
+    configFile: 'vite.config.ts',
+    build: {
+      lib: {
+        entry,
+        formats: ['es'],
+        fileName: () => fileName,
+      },
+    },
+  })
 }

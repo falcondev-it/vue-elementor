@@ -1,12 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Node 16 + ESM + Strictest",
   "compilerOptions": {
     "lib": [
-      "es2021"
+      "es2022"
     ],
-    "module": "es2022",
-    "target": "es2021",
+    "module": "CommonJS",
+    "target": "ES2022",
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -21,8 +20,7 @@
     "importsNotUsedAsValues": "error",
     "checkJs": true,
     "esModuleInterop": true,
-    "noPropertyAccessFromIndexSignature": false,
-    "outDir": "dist"
+    "noPropertyAccessFromIndexSignature": false
   },
   "include": [
     "src/**/*.ts"
