@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises'
 import fs from 'fs-extra'
 import { build } from 'vite'
 import { exec as pkg } from 'pkg'
@@ -7,9 +8,9 @@ import { elementTemplate, ssrScriptTemplate } from './templates'
 export async function buildElement(element: VueElementorElement, arch: string) {
   await fs.ensureDir(`elementor-dist/${element.name}`)
 
-  await fs.writeFile(`elementor-dist/${element.name}/element.js`, await elementTemplate(element))
+  await writeFile(`elementor-dist/${element.name}/element.js`, await elementTemplate(element))
 
-  await fs.writeFile(`elementor-dist/${element.name}/ssr.js`, await ssrScriptTemplate(element))
+  await writeFile(`elementor-dist/${element.name}/ssr.js`, await ssrScriptTemplate(element))
 
   await viteBuild(`elementor-dist/${element.name}/element.js`, `${element.name}.el.js`)
   await fs.copy(

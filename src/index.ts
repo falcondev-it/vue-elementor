@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises'
 import { loadConfig } from 'c12'
 import fs from 'fs-extra'
 import { buildElement } from './builder'
@@ -15,10 +16,10 @@ export const main = async () => {
   await fs.rm('wordpress-plugin', { recursive: true, force: true })
   await fs.ensureDir('wordpress-plugin/assets')
 
-  await fs.writeFile('wordpress-plugin/wordpress-plugin.php', await wordpressPluginTemplate(config.elements))
+  await writeFile('wordpress-plugin/wordpress-plugin.php', await wordpressPluginTemplate(config.elements))
 
   for (const element of config.elements) {
-    await fs.writeFile(
+    await writeFile(
     `wordpress-plugin/${element.name}.widget.php`,
     await wordpressWidgetTemplate(element),
     )
