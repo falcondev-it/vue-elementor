@@ -1,34 +1,23 @@
-import { writeFile } from 'node:fs/promises'
-import { loadConfig } from 'c12'
-import fs from 'fs-extra'
-import slugify from 'slugify'
 import { buildElement } from './builder'
-import { VueElementorConfigSchema } from './schema'
-import { wordpressPluginTemplate, wordpressWidgetTemplate } from './templates'
+import { CONFIG, loadConfig } from './config'
+import { cleanupTempFolders, createBuildFolders, createWordpressPluginFile, createWordpressWidgetFile } from './filesystem'
+import './logger'
 
 export const main = async () => {
-  const config = await VueElementorConfigSchema.parseAsync(await loadConfig({
-    name: 'vue-elementor',
-  }).then(({ config }) => config))
+  await loadConfig()
 
-  const pluginNameSlug = slugify(config.pluginName, { lower: true, strict: true })
+  await createBuildFolders()
 
-  await fs.rm('elementor-dist', { recursive: true, force: true })
-  await fs.ensureDir('elementor-dist')
+  await createWordpressPluginFile()
 
-  await fs.rm(pluginNameSlug, { recursive: true, force: true })
-  await fs.ensureDir(`${pluginNameSlug}/assets`)
+  await Promise.all([
+    CONFIG.elements.map(async (element) => {
+      await createWordpressWidgetFile(element)
+      await buildElement(element)
+    }),
+  ])
 
-  await writeFile(`${pluginNameSlug}/${pluginNameSlug}.php`, await wordpressPluginTemplate(config.elements, config.pluginName))
-
-  for (const element of config.elements) {
-    await writeFile(
-    `${pluginNameSlug}/${element.name}.widget.php`,
-    await wordpressWidgetTemplate(element),
-    )
-    await buildElement(element, config.wordpressArchitecture, pluginNameSlug)
-  }
-
-  await fs.rm('dist', { recursive: true, force: true })
-  await fs.rm('elementor-dist', { recursive: true, force: true })
+  await cleanupTempFolders()
 }
+
+main()
