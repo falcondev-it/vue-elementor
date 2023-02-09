@@ -20,7 +20,8 @@
     "importsNotUsedAsValues": "error",
     "checkJs": true,
     "esModuleInterop": true,
-    "noPropertyAccessFromIndexSignature": false
+    "noPropertyAccessFromIndexSignature": false,
+    "allowSyntheticDefaultImports": false
   },
   "include": [
     "src/**/*.ts"

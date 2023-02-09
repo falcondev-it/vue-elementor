@@ -1,4 +1,6 @@
-import c12 from 'c12'
+import * as path from 'node:path'
+import * as fs from 'node:fs/promises'
+import * as c12 from 'c12'
 import slugify from 'slugify'
 import type { ZodError } from 'zod'
 import type { VueElementorConfig } from './schema'

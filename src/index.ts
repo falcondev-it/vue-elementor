@@ -10,14 +10,10 @@ export const main = async () => {
 
   await createWordpressPluginFile()
 
-  await Promise.all([
-    CONFIG.elements.map(async (element) => {
-      await createWordpressWidgetFile(element)
-      await buildElement(element)
-    }),
-  ])
+  for (const element of CONFIG.elements) {
+    await createWordpressWidgetFile(element)
+    await buildElement(element)
+  }
 
   await cleanupTempFolders()
 }
-
-main()

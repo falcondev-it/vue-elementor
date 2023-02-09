@@ -1,6 +1,6 @@
-import fsExtra from 'fs-extra'
-import vite from 'vite'
-import pkg from 'pkg'
+import * as fsExtra from 'fs-extra'
+import * as vite from 'vite'
+import * as pkg from 'pkg'
 import type { VueElementorElement } from './schema'
 import { createClientScript, createSSRScript } from './filesystem'
 import { CONFIG } from './config'
@@ -8,15 +8,11 @@ import { CONFIG } from './config'
 export async function buildElement(element: VueElementorElement) {
   await fsExtra.ensureDir(`elementor-dist/${element.name}`)
 
-  await Promise.all([
-    createClientScript(element),
-    createSSRScript(element),
-  ])
+  await createClientScript(element)
+  await createSSRScript(element)
 
-  await Promise.all([
-    buildClientScript(element),
-    buildSSRBinary(element),
-  ])
+  await buildClientScript(element)
+  await buildSSRBinary(element)
 }
 
 async function buildClientScript(element: VueElementorElement) {
@@ -29,7 +25,7 @@ async function buildClientScript(element: VueElementorElement) {
 async function buildSSRBinary(element: VueElementorElement) {
   await runViteBuild(`elementor-dist/${element.name}/ssr.js`, `${element.name}.ssr.js`)
 
-  const arch = `${CONFIG.ssrBinaryTarget.node}-${CONFIG.ssrBinaryTarget.platform}-${CONFIG.ssrBinaryTarget.arch}`
+  const arch = `node${CONFIG.ssrBinaryTarget.node}-${CONFIG.ssrBinaryTarget.platform}-${CONFIG.ssrBinaryTarget.arch}`
   await pkg.exec([
     `dist/${element.name}.ssr.js`,
     '-C',

@@ -1,23 +1,20 @@
-import fs from 'node:fs/promises'
-import fsExtra from 'fs-extra'
+import * as fs from 'node:fs/promises'
+import * as fsExtra from 'fs-extra'
 import { CONFIG } from './config'
 import type { VueElementorElement } from './schema'
 import { templates } from './templates'
 
-export const cleanupTempFolders = async () => Promise.all([
-  fsExtra.rm('dist', { recursive: true, force: true }),
-  fsExtra.rm('elementor-dist', { recursive: true, force: true }),
-])
+export const cleanupTempFolders = async () => {
+  await fs.rm('dist', { recursive: true, force: true })
+  await fs.rm('elementor-dist', { recursive: true, force: true })
+}
 
 export const createBuildFolders = async () => {
-  await Promise.all([
-    fsExtra.rm('elementor-dist', { recursive: true, force: true }),
-    fsExtra.rm(CONFIG.pluginNameSlug, { recursive: true, force: true }),
-  ])
-  await Promise.all([
-    fsExtra.ensureDir('elementor-dist'),
-    fsExtra.ensureDir(`${CONFIG.pluginNameSlug}/assets`),
-  ])
+  await fs.rm('elementor-dist', { recursive: true, force: true })
+  await fs.rm(CONFIG.pluginNameSlug, { recursive: true, force: true })
+
+  await fsExtra.ensureDir('elementor-dist')
+  await fsExtra.ensureDir(`${CONFIG.pluginNameSlug}/assets`)
 }
 
 export const createWordpressPluginFile = async () => {
