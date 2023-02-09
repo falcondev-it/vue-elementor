@@ -115,8 +115,8 @@ export const templates = {
     {
         ${CONFIG.elements.map((element) => {
           return `
-          wp_register_script('elementor-${element.name}-widget', plugin_dir_url(__FILE__) . 'assets/${element.name}.el.js', [], '1.0.0', false);
-          //wp_register_style('elementor-${element.name}-widget', plugin_dir_url(__FILE__) . 'assets/${element.name}.el.css', [], '1.0.0', 'all');`
+          wp_register_script('elementor-${element.name}-widget', plugin_dir_url(__FILE__) . 'assets/${element.name}.el.js', [], '${CONFIG.version}', false);
+          //wp_register_style('elementor-${element.name}-widget', plugin_dir_url(__FILE__) . 'assets/${element.name}.el.css', [], '${CONFIG.version}', 'all');`
         })}
     }
     add_action('wp_enqueue_scripts', 'register_dependencies');
@@ -167,7 +167,7 @@ export const templates = {
      * Plugin Name: ${CONFIG.wordpressPluginSettings.name}
      * Description: ${CONFIG.wordpressPluginSettings.name}
      * Plugin URI:  https://elementor.com/
-     * Version:     1.0.0
+     * Version:     ${CONFIG.version}
      * Author:      Elementor Developer
      * Author URI:  https://developers.elementor.com/
      *
