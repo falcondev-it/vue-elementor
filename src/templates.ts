@@ -1,7 +1,7 @@
 import * as fs from 'node:fs/promises'
 import * as path from 'node:path'
+import { kebabCase } from 'scule'
 import type { VueElementorElement } from './schema'
-import { toKebabCase } from './utils'
 import { CONFIG } from './config'
 
 export const templates = {
@@ -15,9 +15,9 @@ export const templates = {
     const params = JSON.parse(process.argv.slice(2).join('') || '{}')
     
     renderToString(app).then((html) => {
-      console.log(\`<${toKebabCase(
+      console.log(\`<${kebabCase(
         element.name,
-      )} settings="\${JSON.stringify(params.settings || {})}">\${html}</${toKebabCase(
+      )} settings="\${JSON.stringify(params.settings || {})?.replace(/"/g, '&quot;').replace(/&/g, '&amp;')}">\${html}</${kebabCase(
       element.name,
     )}>\`)
     })
@@ -30,7 +30,7 @@ export const templates = {
   
   const Element = defineCustomElement(Component)
   
-  customElements.define('${toKebabCase(element.name)}', Element)
+  customElements.define('${kebabCase(element.name)}', Element)
 `
   },
   wordpressWidget: (element: VueElementorElement) => {
@@ -95,12 +95,11 @@ export const templates = {
           }
       }
   }
-  
 `
   },
   wordpressPlugin: async () => {
     const pluginOutletString = `
-    function register_widgets($widgets_manager)
+    function ${CONFIG.pluginNameSnake}_register_widgets($widgets_manager)
     {
         ${CONFIG.elements
           .map((element) => {
@@ -109,9 +108,9 @@ export const templates = {
           })
           .join('\n')}
     }
-    add_action('elementor/widgets/register', 'register_widgets');
+    add_action('elementor/widgets/register', '${CONFIG.pluginNameSnake}_register_widgets');
     
-    function register_dependencies()
+    function ${CONFIG.pluginNameSnake}_register_dependencies()
     {
         ${CONFIG.elements.map((element) => {
           return `
@@ -119,9 +118,9 @@ export const templates = {
           //wp_register_style('elementor-${element.name}-widget', plugin_dir_url(__FILE__) . 'assets/${element.name}.el.css', [], '${CONFIG.version}', 'all');`
         })}
     }
-    add_action('wp_enqueue_scripts', 'register_dependencies');
+    add_action('wp_enqueue_scripts', '${CONFIG.pluginNameSnake}_register_dependencies');
     
-    function add_type_attribute($tag, $handle, $src)
+    function ${CONFIG.pluginNameSnake}_add_type_attribute($tag, $handle, $src)
     {
         $pattern = "/${CONFIG.elements.map(el => el.name).join('|')}/i";
         if (!preg_match($pattern, $handle)) {
@@ -131,9 +130,9 @@ export const templates = {
         $tag = '<script type="module" src="' . esc_url($src) . '"></script>';
         return $tag;
     }
-    add_filter('script_loader_tag', 'add_type_attribute', 10, 3);
+    add_filter('script_loader_tag', '${CONFIG.pluginNameSnake}_add_type_attribute', 10, 3);
     
-    function make_script_executable()
+    function ${CONFIG.pluginNameSnake}_make_script_executable()
     {
         ${CONFIG.elements
           .map((element) => {
@@ -144,7 +143,7 @@ export const templates = {
   
     register_activation_hook(
         __FILE__,
-        'make_script_executable'
+        '${CONFIG.pluginNameSnake}_make_script_executable'
     );
     
     `

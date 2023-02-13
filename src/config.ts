@@ -3,11 +3,12 @@ import * as fs from 'node:fs/promises'
 import * as c12 from 'c12'
 import slugify from 'slugify'
 import type { ZodError } from 'zod'
+import { snakeCase } from 'scule'
 import type { VueElementorConfig } from './schema'
 import { VueElementorConfigSchema, formatZodErrors } from './schema'
 
 // eslint-disable-next-line import/no-mutable-exports
-export let CONFIG: VueElementorConfig & { pluginNameSlug: string; version: string }
+export let CONFIG: VueElementorConfig & { pluginNameSlug: string; version: string; pluginNameSnake: string }
 
 const readPackageJson = async () => {
   const packagesJsonPath = path.join(process.cwd(), 'package.json')
@@ -28,6 +29,7 @@ export const loadConfig = async () => {
   CONFIG = {
     ...validatedConfig,
     pluginNameSlug: slugify(validatedConfig.wordpressPluginSettings.name, { lower: true, strict: true }),
+    pluginNameSnake: snakeCase(validatedConfig.wordpressPluginSettings.name),
     version: await readPackageJson().then(data => data.version),
   }
 }
