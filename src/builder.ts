@@ -1,35 +1,44 @@
-import { writeFile } from 'node:fs/promises'
-import fs from 'fs-extra'
-import { build } from 'vite'
-import { exec as pkg } from 'pkg'
+import * as fsExtra from 'fs-extra'
+import * as vite from 'vite'
+import * as pkg from 'pkg'
 import type { VueElementorElement } from './schema'
-import { elementTemplate, ssrScriptTemplate } from './templates'
+import { createClientScript, createSSRScript } from './filesystem'
+import { CONFIG } from './config'
 
-export async function buildElement(element: VueElementorElement, arch: string, pluginName: string) {
-  await fs.ensureDir(`elementor-dist/${element.name}`)
+export async function buildElement(element: VueElementorElement) {
+  await fsExtra.ensureDir(`elementor-dist/${element.name}`)
 
-  await writeFile(`elementor-dist/${element.name}/element.js`, await elementTemplate(element))
+  await createClientScript(element)
+  await createSSRScript(element)
 
-  await writeFile(`elementor-dist/${element.name}/ssr.js`, await ssrScriptTemplate(element))
+  await buildClientScript(element)
+  await buildSSRBinary(element)
+}
 
-  await viteBuild(`elementor-dist/${element.name}/element.js`, `${element.name}.el.js`)
-  await fs.copy(
+async function buildClientScript(element: VueElementorElement) {
+  await runViteBuild(`elementor-dist/${element.name}/element.js`, `${element.name}.el.js`)
+  await fsExtra.copy(
     `dist/${element.name}.el.js`,
-    `${pluginName}/assets/${element.name}.el.js`,
+    `${CONFIG.pluginNameSlug}/assets/${element.name}.el.js`,
   )
+}
+async function buildSSRBinary(element: VueElementorElement) {
+  await runViteBuild(`elementor-dist/${element.name}/ssr.js`, `${element.name}.ssr.js`)
 
-  await viteBuild(`elementor-dist/${element.name}/ssr.js`, `${element.name}.ssr.js`)
-  await pkg([
+  const arch = `node${CONFIG.ssrBinaryTarget.node}-${CONFIG.ssrBinaryTarget.platform}-${CONFIG.ssrBinaryTarget.arch}`
+  await pkg.exec([
     `dist/${element.name}.ssr.js`,
+    '-C',
+    'GZip',
     '--target',
     arch,
     '--output',
-    `${pluginName}/assets/${element.name}.ssr`,
+    `${CONFIG.pluginNameSlug}/assets/${element.name}.ssr`,
   ])
 }
 
-export async function viteBuild(entry: string, fileName: string) {
-  return build({
+async function runViteBuild(entry: string, fileName: string) {
+  return vite.build({
     configFile: 'vite.config.ts',
     build: {
       lib: {
