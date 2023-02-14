@@ -18,6 +18,15 @@ export const VueElementorConfigSchema = z.object({
   wordpressPluginSettings: z.object({
     name: z.string(),
     templateFile: z.string().optional(),
+    widgetSettings: z.array(z.object({
+      id: z.string(),
+      options: z.any(),
+      controls: z.array(z.object({
+        responsive: z.boolean().optional(),
+        name: z.string(),
+        options: z.any(),
+      })),
+    })).optional(),
   }),
 })
 

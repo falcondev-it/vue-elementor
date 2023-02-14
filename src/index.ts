@@ -17,3 +17,5 @@ export const main = async () => {
 
   await cleanupTempFolders()
 }
+
+export const useWidgetData = <T>(widgetId: string): T | undefined => (window as typeof window & { __VUE_ELEMENTOR_DATA__: Record<string, any> | undefined }).__VUE_ELEMENTOR_DATA__?.[widgetId]

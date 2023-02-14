@@ -17,7 +17,7 @@ export const templates = {
     renderToString(app).then((html) => {
       console.log(\`<${toKebabCase(
         element.name,
-      )} settings="\${JSON.stringify(params.settings || {})}">\${html}</${toKebabCase(
+      )} widget-id="\${JSON.stringify(params.widgetId || null)}">\${html}</${toKebabCase(
       element.name,
     )}>\`)
     })
@@ -79,17 +79,43 @@ export const templates = {
   
       protected function register_controls()
       {
+        ${CONFIG.wordpressPluginSettings.widgetSettings?.map((section) => {
+          return `
+          $this->start_controls_section(
+            '${section.id}',
+            [
+              ${Object.entries(section.options ?? {}).map(([key, value]) => {
+                return key === 'tab' || typeof value !== 'string' ? `'${key}' => ${value}` : `'${key}' => '${value}'`
+              }).join(',\n')}
+            ]
+          );
+
+          ${section.controls.map((control) => {
+            return `
+            $this->${control.responsive ? 'add_responsive_control' : 'add_control'}(
+              '${control.name}',
+              [
+                ${Object.entries(control.options ?? {}).map(([key, value]) => {
+                  return key === 'type' || typeof value !== 'string' ? `'${key}' => ${value}` : `'${key}' => '${value}'`
+                }).join(',\n')}
+              ]
+            );
+            `
+          }).join('\n')}
+
+          $this->end_controls_section();
+          `
+        }).join('\n') ?? ''}
       }
   
       protected function render()
       {
           $html = [];
   
-          $args = [
-            "settings" => [],
-            "widgetId" => $this->get_id()
-          ];
-          exec(__DIR__ . '/assets/${element.name}.ssr ' . json_encode(json_encode($args)), $html);
+          $settings = $this->get_settings_for_display();
+
+          echo "<script>if(!window.__VUE_ELEMENTOR_DATA__) {window.__VUE_ELEMENTOR_DATA__ = {}} window.__VUE_ELEMENTOR_DATA__['" . $this->get_id() . "'] = " . json_encode($settings) . "</script>";
+          exec(__DIR__ . '/assets/${element.name}.ssr ' . $this->get_id(), $html);
           for ($i = 0; $i < count($html); $i++) {
               echo $html[$i];
           }
