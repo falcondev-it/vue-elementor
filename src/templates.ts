@@ -11,13 +11,13 @@ export const templates = {
     import { renderToString } from 'vue/server-renderer'
     import Component from '@/../${element.component}'
     
-    const app = createSSRApp(Component)
     const params = JSON.parse(process.argv.slice(2).join('') || '{}')
-    
+    const app = createSSRApp(Component, params)
+
     renderToString(app).then((html) => {
       console.log(\`<${toKebabCase(
         element.name,
-      )} widget-id="\${JSON.stringify(params.widgetId || null)}">\${html}</${toKebabCase(
+      )} widget-id="\${params.widgetId}">\${html}</${toKebabCase(
       element.name,
     )}>\`)
     })
@@ -28,7 +28,17 @@ export const templates = {
   import { defineCustomElement } from 'vue'
   import Component from '@/../${element.component}'
   
-  const Element = defineCustomElement(Component)
+  const Element = defineCustomElement({
+    setup: () => {
+      return (vue) => {
+        return h(Component, {
+          settings: window.__VUE_ELEMENTOR_DATA__[vue?.$attrs?.widgetId ?? ''],
+          ...(vue?.$attrs ?? {}),
+        })
+      }
+    },
+    styles: Component.styles
+  })
   
   customElements.define('${toKebabCase(element.name)}', Element)
 `
@@ -112,10 +122,15 @@ export const templates = {
       {
           $html = [];
   
-          $settings = $this->get_settings_for_display();
+          $args = [
+            "settings" => $this->get_settings_for_display(),
+            "widgetId" => $this->get_id()
+          ];
 
-          echo "<script>if(!window.__VUE_ELEMENTOR_DATA__) {window.__VUE_ELEMENTOR_DATA__ = {}} window.__VUE_ELEMENTOR_DATA__['" . $this->get_id() . "'] = " . json_encode($settings) . "</script>";
-          exec(__DIR__ . '/assets/${element.name}.ssr ' . $this->get_id(), $html);
+          $script = '<script> if(!window.__VUE_ELEMENTOR_DATA__) { window.__VUE_ELEMENTOR_DATA__ = {} } window.__VUE_ELEMENTOR_DATA__["' . $args['widgetId'] . '"] = ' . json_encode($args['settings']) . ' </script>';
+          
+          echo $script;
+          exec(__DIR__ . '/assets/${element.name}.ssr ' . json_encode(json_encode($args)), $html);
           for ($i = 0; $i < count($html); $i++) {
               echo $html[$i];
           }
