@@ -89,7 +89,7 @@ export const templates = {
   
       protected function register_controls()
       {
-        ${CONFIG.wordpressPluginSettings.widgetSettings?.map((section) => {
+        ${!CONFIG.wordpressPluginSettings.widgetSettings ? '' : CONFIG.wordpressPluginSettings.widgetSettings.map((section) => {
           return `
           $this->start_controls_section(
             '${section.id}',
@@ -115,7 +115,7 @@ export const templates = {
 
           $this->end_controls_section();
           `
-        }).join('\n') ?? ''}
+        }).join('\n')}
       }
   
       protected function render()
