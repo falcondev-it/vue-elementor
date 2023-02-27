@@ -2,7 +2,8 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "lib": [
-      "es2022"
+      "es2022",
+      "dom"
     ],
     "module": "CommonJS",
     "target": "ES2022",

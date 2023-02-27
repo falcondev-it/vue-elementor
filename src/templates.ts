@@ -11,13 +11,13 @@ export const templates = {
     import { renderToString } from 'vue/server-renderer'
     import Component from '@/../${element.component}'
     
-    const app = createSSRApp(Component)
     const params = JSON.parse(process.argv.slice(2).join('') || '{}')
-    
+    const app = createSSRApp(Component, params)
+
     renderToString(app).then((html) => {
       console.log(\`<${toKebabCase(
         element.name,
-      )} settings="\${JSON.stringify(params.settings || {})}">\${html}</${toKebabCase(
+      )} widget-id="\${params.widgetId}">\${html}</${toKebabCase(
       element.name,
     )}>\`)
     })
@@ -28,7 +28,17 @@ export const templates = {
   import { defineCustomElement } from 'vue'
   import Component from '@/../${element.component}'
   
-  const Element = defineCustomElement(Component)
+  const Element = defineCustomElement({
+    setup: () => {
+      return (vue) => {
+        return h(Component, {
+          settings: window.__VUE_ELEMENTOR_DATA__[vue?.$attrs?.widgetId ?? ''],
+          ...(vue?.$attrs ?? {}),
+        })
+      }
+    },
+    styles: Component.styles
+  })
   
   customElements.define('${toKebabCase(element.name)}', Element)
 `
@@ -79,6 +89,33 @@ export const templates = {
   
       protected function register_controls()
       {
+        ${!CONFIG.wordpressPluginSettings.widgetSettings ? '' : CONFIG.wordpressPluginSettings.widgetSettings.map((section) => {
+          return `
+          $this->start_controls_section(
+            '${section.id}',
+            [
+              ${Object.entries(section.options ?? {}).map(([key, value]) => {
+                return key === 'tab' || typeof value !== 'string' ? `'${key}' => ${value}` : `'${key}' => '${value}'`
+              }).join(',\n')}
+            ]
+          );
+
+          ${section.controls.map((control) => {
+            return `
+            $this->${control.responsive ? 'add_responsive_control' : 'add_control'}(
+              '${control.name}',
+              [
+                ${Object.entries(control.options ?? {}).map(([key, value]) => {
+                  return key === 'type' || typeof value !== 'string' ? `'${key}' => ${value}` : `'${key}' => '${value}'`
+                }).join(',\n')}
+              ]
+            );
+            `
+          }).join('\n')}
+
+          $this->end_controls_section();
+          `
+        }).join('\n')}
       }
   
       protected function render()
@@ -86,9 +123,13 @@ export const templates = {
           $html = [];
   
           $args = [
-            "settings" => [],
+            "settings" => $this->get_settings_for_display(),
             "widgetId" => $this->get_id()
           ];
+
+          $script = '<script> if(!window.__VUE_ELEMENTOR_DATA__) { window.__VUE_ELEMENTOR_DATA__ = {} } window.__VUE_ELEMENTOR_DATA__["' . $args['widgetId'] . '"] = ' . json_encode($args['settings']) . ' </script>';
+          
+          echo $script;
           exec(__DIR__ . '/assets/${element.name}.ssr ' . json_encode(json_encode($args)), $html);
           for ($i = 0; $i < count($html); $i++) {
               echo $html[$i];
