@@ -35,7 +35,7 @@
     "@parcel/transformer-typescript-types": "^2.8.3",
     "c12": "^1.1.0",
     "consola": "^2.15.3",
-    "fs-extra": "^11.1.0",
+    "fs-extra": "^11.1.1",
     "parcel": "^2.8.3",
     "pkg": "^5.8.0",
     "slugify": "^1.6.5",
